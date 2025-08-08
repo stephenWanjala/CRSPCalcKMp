@@ -12,6 +12,7 @@ androidx-testExt = "1.2.1"
 composeHotReload = "1.0.0-beta04"
 composeMultiplatform = "1.8.2"
 junit = "4.13.2"
+kcsv = "2.2.0"
 kotlin = "2.2.0"
 koin-bom = "4.1.0"
 kotlinx-coroutines = "1.10.2"
@@ -21,6 +22,7 @@ androidxMaterial3 ="1.5.0-alpha01"
 navigationCompose = "2.9.0-beta04"
 
 [libraries]
+kcsv = { module = "net.codinux.csv:kcsv", version.ref = "kcsv" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin-bom" }
 koin-androidx-compose-navigation = { module = "io.insert-koin:koin-androidx-compose-navigation", version.ref = "koin-bom" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
