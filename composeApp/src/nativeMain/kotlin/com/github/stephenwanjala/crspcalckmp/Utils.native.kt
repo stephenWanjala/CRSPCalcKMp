@@ -71,3 +71,7 @@ fun Double.toString(decimals: Int, useThousandSeparators: Boolean = false): Stri
 
     return if (isNegative) "-$result" else result
 }
+
+actual fun String.isDigitsOnlyString(): Boolean {
+    return this.all { it.isDigit() }
+}

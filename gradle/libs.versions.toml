@@ -17,6 +17,7 @@ kotlin = "2.2.0"
 koin-bom = "4.1.0"
 kotlinx-coroutines = "1.10.2"
 kotlinxSerializationJson = "1.9.0"
+material3Desktop = "1.8.2"
 materialIconsExtended = "1.7.3"
 androidxMaterial3 ="1.5.0-alpha01"
 navigationCompose = "2.9.0-beta04"
@@ -41,6 +42,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" ,version.ref="androidxMaterial3"}
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
+material3-desktop = { module = "org.jetbrains.compose.material3:material3-desktop", version.ref = "material3Desktop" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]

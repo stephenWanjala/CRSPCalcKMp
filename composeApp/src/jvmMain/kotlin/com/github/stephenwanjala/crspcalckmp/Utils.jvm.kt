@@ -10,3 +10,7 @@ actual fun formatNumber(
         maximumFractionDigits = decimals
     }.format(number)
 }
+
+actual fun String.isDigitsOnlyString(): Boolean {
+    return this.isDigitsOnly()
+}
