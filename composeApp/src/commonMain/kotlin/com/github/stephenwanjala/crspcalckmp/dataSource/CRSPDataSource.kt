@@ -8,17 +8,7 @@ import kotlinx.serialization.Serializable
 import net.codinux.csv.reader.CommentStrategy
 import net.codinux.csv.reader.CsvReader
 
-class CRSPDataSource {
-    @Serializable
-    private data class Vehicles(
-        val vehicles: List<Vehicle>
-    )
-
-    @Serializable
-    private data class Motorcycles(
-        val motorcycles: List<Motorcycle>
-    )
-
+object CRSPDataSource {
     @OptIn(ExperimentalSerializationApi::class)
     private fun loadVehicles(csvData: String): List<Vehicle> {
         return CsvReader(
