@@ -6,6 +6,7 @@ actual fun formatNumber(
     locale: String
 ): String {
     return java.text.NumberFormat.getNumberInstance(java.util.Locale(locale)).apply {
+        isGroupingUsed=true
         minimumFractionDigits = decimals
         maximumFractionDigits = decimals
     }.format(number)
