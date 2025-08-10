@@ -38,9 +38,7 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.material3)
-//            implementation(libs.koin.core)
-//            implementation(libs.koin.androidx.compose)
-//            implementation(libs.koin.androidx.compose.navigation)
+            implementation(libs.androidx.core.splashscreen)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
