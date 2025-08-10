@@ -1,6 +1,8 @@
 package com.github.stephenwanjala.crspcalckmp
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -17,37 +19,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.github.stephenwanjala.crspcalckmp.ui.CRSPCalcNav
 import com.github.stephenwanjala.crspcalckmp.ui.CRSPCalcTheme
 import crspcalckmp.composeapp.generated.resources.Res
 import crspcalckmp.composeapp.generated.resources.compose_multiplatform
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview
 fun App() {
     CRSPCalcTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+        SharedTransitionLayout {
+            val navController = rememberNavController()
+            CRSPCalcNav(
+                navController = navController,
+                modifier = Modifier,
+                sharedTransitionScope=this
+            )
         }
     }
 }

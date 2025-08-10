@@ -12,5 +12,5 @@ actual fun formatNumber(
 }
 
 actual fun String.isDigitsOnlyString(): Boolean {
-    return this.isDigitsOnly()
+    return this.all{ it.isDigit()}
 }

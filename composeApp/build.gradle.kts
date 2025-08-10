@@ -38,11 +38,9 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.material3)
-            implementation(project.dependencies.platform(libs.koin.bom))
-            implementation(libs.koin.core)
-            implementation(libs.koin.androidx.compose)
-            implementation(libs.koin.androidx.compose.navigation)
-            implementation(libs.navigation.compose)
+//            implementation(libs.koin.core)
+//            implementation(libs.koin.androidx.compose)
+//            implementation(libs.koin.androidx.compose.navigation)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -53,9 +51,16 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kcsv)
             implementation(libs.material.icons.extended)
+
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.koin.compose.viewmodel.navigation)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
