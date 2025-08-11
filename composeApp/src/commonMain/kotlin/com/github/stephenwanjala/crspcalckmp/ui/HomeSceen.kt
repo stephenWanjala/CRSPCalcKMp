@@ -72,6 +72,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.github.stephenwanjala.crspcalckmp.domain.models.Vehicle
 import com.github.stephenwanjala.crspcalckmp.formatNumber
@@ -105,6 +106,7 @@ fun HomeScreen(
 
     var showFilterBottomSheet by remember { mutableStateOf<FilterOptions?>(null) }
     var showSortBottomSheet by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf<FilterOptions?>(null) }
 
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
@@ -152,16 +154,17 @@ fun HomeScreen(
                         }
 
                         if (isDesktop) {
-                            // Use dropdown for desktop
                             FilterDropdownChip(
                                 filterOption = item,
                                 isSelected = isSelected,
                                 state = state,
                                 onFilterOptionSelected = onFilterOptionSelected,
-                                onSortTypeSelected = onSortTypeSelected
+                                onSortTypeSelected = onSortTypeSelected,
+                                onShowFilterDialog = { filterOptionToShow ->
+                                    showFilterDialog = filterOptionToShow
+                                }
                             )
                         } else {
-                            // Use original FilterChip for mobile
                             FilterChip(
                                 selected = isSelected,
                                 onClick = {
@@ -310,6 +313,55 @@ fun HomeScreen(
                 )
             }
         }
+
+        // Desktop Filter Dialog (only show on desktop)
+        if (isDesktop) {
+            showFilterDialog?.let { filterOption ->
+                val options = when (filterOption) {
+                    FilterOptions.Make -> state.vehicles.mapNotNull { it.make }.distinct()
+                    FilterOptions.Model -> {
+                        val filteredByMake = state.vehicles.filter {
+                            state.selectedMakeFilter == null || it.make == state.selectedMakeFilter
+                        }
+                        filteredByMake.mapNotNull { it.model }.filter { it.isNotBlank() }.distinct()
+                    }
+
+                    FilterOptions.Fuel -> state.vehicles.mapNotNull { it.fuel }.distinct()
+                    FilterOptions.Type -> state.vehicles.mapNotNull { it.bodyType }.distinct()
+                    FilterOptions.Transmission -> state.vehicles.mapNotNull { it.transmission }
+                        .distinct()
+
+                    FilterOptions.Drive -> state.vehicles.mapNotNull { it.engineCapacity }
+                        .distinct()
+
+                    else -> emptyList()
+                }.sorted()
+
+                val selectedOption = when (filterOption) {
+                    FilterOptions.Make -> state.selectedMakeFilter
+                    FilterOptions.Model -> state.selectedModelFilter
+                    FilterOptions.Fuel -> state.selectedFuelFilter
+                    FilterOptions.Type -> state.selectedTypeFilter
+                    FilterOptions.Transmission -> state.selectedTransmissionFilter
+                    FilterOptions.Drive -> state.selectedDriveFilter
+                    else -> null
+                }
+                SearchableFilterDialog(
+                    options = options,
+                    selectedOption = selectedOption,
+                    onOptionSelected = { value ->
+                        onFilterOptionSelected(filterOption, value)
+                        showFilterDialog = null
+                    },
+                    onDismissRequest = { showFilterDialog = null },
+                    filterOption = filterOption,
+                    onClearFilter = {
+                        onFilterOptionSelected(filterOption, null)
+                        showFilterDialog = null
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -319,14 +371,21 @@ fun FilterDropdownChip(
     isSelected: Boolean,
     state: HomeState,
     onFilterOptionSelected: (FilterOptions, String?) -> Unit,
-    onSortTypeSelected: (SortType) -> Unit
+    onSortTypeSelected: (SortType) -> Unit,
+    onShowFilterDialog: (FilterOptions) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
         FilterChip(
             selected = isSelected,
-            onClick = { expanded = !expanded },
+            onClick = {
+                if (filterOption == FilterOptions.Sort || filterOption == FilterOptions.Order) {
+                    expanded = !expanded
+                } else {
+                    onShowFilterDialog(filterOption)
+                }
+            },
             label = { Text(text = filterOption.name) },
             trailingIcon = {
                 if (isSelected) {
@@ -344,34 +403,139 @@ fun FilterDropdownChip(
             enabled = true,
         )
 
-        when (filterOption) {
-            FilterOptions.Sort, FilterOptions.Order -> {
-                SortDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    state = state,
-                    onSortTypeSelected = { sortType ->
-                        onSortTypeSelected(sortType)
-                        expanded = false
-                    }
-                )
-            }
+        // Only show DropdownMenu for Sort/Order, other filters use the dialog
+        if (filterOption == FilterOptions.Sort || filterOption == FilterOptions.Order) {
+            SortDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                state = state,
+                onSortTypeSelected = { sortType ->
+                    onSortTypeSelected(sortType)
+                    expanded = false
+                }
+            )
+        }
+    }
+}
 
-            else -> {
-                FilterDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    filterOption = filterOption,
-                    state = state,
-                    onFilterOptionSelected = { value ->
-                        onFilterOptionSelected(filterOption, value)
-                        expanded = false
+@Composable
+fun SearchableFilterDialog(
+    options: List<String>,
+    selectedOption: String?,
+    onOptionSelected: (String?) -> Unit,
+    onDismissRequest: () -> Unit,
+    filterOption: FilterOptions,
+    onClearFilter: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredOptions = remember(options, searchQuery) {
+        if (searchQuery.isBlank()) {
+            options
+        } else {
+            options.filter { it.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Card(
+            modifier = Modifier
+                .widthIn(min = 300.dp, max = 500.dp)
+                .height(400.dp),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Select ${filterOption.name}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    IconButton(onClick = onDismissRequest) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search ${filterOption.name}") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                            }
+                        }
                     }
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (selectedOption != null) {
+                    // Clear filter option
+                    FilterChip(
+                        modifier = Modifier.fillMaxWidth(),
+                        selected = false, // Never selected itself, it's an action
+                        onClick = {
+                            onClearFilter()
+                            searchQuery = ""
+                        },
+                        label = { Text("Clear ${filterOption.name} Filter") },
+                        leadingIcon = {
+                            Icon(Icons.Default.ClearAll, contentDescription = "Clear")
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (filteredOptions.isEmpty() && searchQuery.isNotEmpty()) {
+                        item {
+                            Text(
+                                "No results found for \"$searchQuery\"",
+                                modifier = Modifier.padding(vertical = 16.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    } else {
+                        items(filteredOptions) { option ->
+                            FilterChip(
+                                modifier = Modifier.fillMaxWidth(),
+                                selected = selectedOption == option,
+                                onClick = { onOptionSelected(option) },
+                                label = { Text(option) },
+                                trailingIcon = {
+                                    if (selectedOption == option) {
+                                        Icon(Icons.Default.Check, contentDescription = "Selected")
+                                    }
+                                },
+                                shape = MaterialTheme.shapes.medium
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun FilterDropdownMenu(
@@ -545,7 +709,7 @@ fun SortDropdownMenu(
     }
 }
 
-// Keep the existing modal sheet composables for mobile compatibility
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T : SortType> SortModalSheet(
