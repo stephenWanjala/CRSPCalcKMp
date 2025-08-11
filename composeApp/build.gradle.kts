@@ -58,6 +58,8 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
+            implementation(libs.adaptive)
+            implementation(libs.komposetable)
 
         }
         commonTest.dependencies {
@@ -67,6 +69,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.material3.desktop)
+//            implementation(libs.komposetable.jvm)
         }
     }
 }
