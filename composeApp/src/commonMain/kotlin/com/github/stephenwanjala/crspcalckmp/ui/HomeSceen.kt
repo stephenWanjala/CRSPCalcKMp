@@ -68,7 +68,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -81,10 +80,13 @@ import com.github.stephenwanjala.crspcalckmp.domain.models.Vehicle
 import com.github.stephenwanjala.crspcalckmp.formatNumber
 import crspcalckmp.composeapp.generated.resources.Res
 import crspcalckmp.composeapp.generated.resources.logo
+import io.github.stephenwanjala.komposetable.ColumnResizeMode
 import io.github.stephenwanjala.komposetable.KomposeTable
+import io.github.stephenwanjala.komposetable.KomposeTableDefaults
 import io.github.stephenwanjala.komposetable.SortState
-import io.github.stephenwanjala.komposetable.TableColumn
 import io.github.stephenwanjala.komposetable.TableSelectionModel
+import io.github.stephenwanjala.komposetable.TableSortColumn
+import io.github.stephenwanjala.komposetable.rememberKomposeTableState
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -1052,7 +1054,7 @@ fun VehicleTable(
 
     with(sharedTransitionScope) {
         val columns = listOf(
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "make",
                 title = "Make",
                 width = 150.dp,
@@ -1070,7 +1072,7 @@ fun VehicleTable(
                 },
                 comparator = compareBy { it.make ?: "" },
             ),
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "model",
                 title = "Model",
                 width = 250.dp,
@@ -1083,7 +1085,7 @@ fun VehicleTable(
                 },
                 comparator = compareBy { it.model ?: "" },
             ),
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "price",
                 title = "Price (KES)",
                 width = 120.dp,
@@ -1101,7 +1103,7 @@ fun VehicleTable(
                 },
                 comparator = compareBy { it.crsp ?: 0.0 },
             ),
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "fuel",
                 title = "Fuel",
                 width = 90.dp,
@@ -1114,7 +1116,7 @@ fun VehicleTable(
                 },
                 comparator = compareBy { it.fuel ?: "" },
             ),
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "bodyType",
                 title = "Body Type",
                 width = 120.dp,
@@ -1127,7 +1129,7 @@ fun VehicleTable(
                 },
                 comparator = compareBy { it.bodyType ?: "" },
             ),
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "transmission",
                 title = "Transmission",
                 width = 120.dp,
@@ -1141,7 +1143,7 @@ fun VehicleTable(
                 },
                 comparator = compareBy { it.transmission ?: "" },
             ),
-            TableColumn<Vehicle>(
+            TableSortColumn<Vehicle>(
                 id = "engineCapacity",
                 title = "Engine (CC)",
                 width = 100.dp,
@@ -1159,28 +1161,30 @@ fun VehicleTable(
                 comparator = compareBy { it.engineCapacity?.toDoubleOrNull() ?: 0.0 },
             ),
         )
+        val state = rememberKomposeTableState(
+            columnResizeMode = ColumnResizeMode.CONSTRAINED
+        )
 
         KomposeTable(
             columns = columns,
             tableData = vehicles,
             selectionModel = selectionModel,
             sortState = sortState,
-            enableSorting = true,
-            enableSelection = false,
-            enableColumnResizing = true,
-            enableHover = true,
+            state = state,
+            colors = KomposeTableDefaults.colors.copy(
+                alternatingRowColors = listOf(
+                    MaterialTheme.colorScheme.background.copy(alpha = .5f),
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5f)
+                ),
+                headerBackgroundColor = MaterialTheme.colorScheme.background
+            ),
             onRowClick = { vehicle, _ ->
                 onVehicleClick(vehicle)
             },
             onSelectionChange = { selectedVehicles ->
 
             },
-//            modifier = Modifier.fillMaxSize(),
-            alternatingRowColors = listOf(
-                MaterialTheme.colorScheme.background.copy(alpha = .5f),
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5f)
-            ),
-            headerBackgroundColor = MaterialTheme.colorScheme.background
+//            modifier = Modifier.fillMaxSize()
         )
     }
 }
