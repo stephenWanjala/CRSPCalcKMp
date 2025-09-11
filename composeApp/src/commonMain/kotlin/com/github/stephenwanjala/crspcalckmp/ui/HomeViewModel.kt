@@ -5,11 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.github.stephenwanjala.crspcalckmp.dataSource.CRSPDataSource
 import com.github.stephenwanjala.crspcalckmp.domain.models.Motorcycle
 import com.github.stephenwanjala.crspcalckmp.domain.models.Vehicle
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,7 +15,6 @@ import kotlinx.coroutines.launch
 class HomeViewModel : ViewModel() {
     private val _vehicles = MutableStateFlow<List<Vehicle>>(emptyList())
     private val _motorcycles = MutableStateFlow<List<Motorcycle>>(emptyList())
-
     private val _selectedMakeFilter = MutableStateFlow<String?>(null)
     private val _selectedModelFilter = MutableStateFlow<String?>(null)
     private val _selectedFuelFilter = MutableStateFlow<String?>(null)
@@ -27,8 +24,6 @@ class HomeViewModel : ViewModel() {
         MutableStateFlow<String?>(null)
     private val _selectedSortType = MutableStateFlow<SortType>(SortType.Make(OrderType.Ascending))
 
-    private val _events: Channel<HomeEvents> = Channel()
-    val events = _events.receiveAsFlow()
 
     val state = combine(
         _vehicles,
@@ -144,8 +139,4 @@ class HomeViewModel : ViewModel() {
         _selectedDriveFilter.update { null }
         _selectedSortType.update { SortType.Make(OrderType.Ascending) }
     }
-}
-
-sealed interface HomeEvents {
-    data object Error : HomeEvents
 }

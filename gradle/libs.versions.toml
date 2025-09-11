@@ -8,6 +8,7 @@ androidx-activity = "1.10.1"
 androidx-appcompat = "1.7.1"
 androidx-core = "1.16.0"
 androidx-espresso = "3.7.0"
+componentsSplitpane = "1.10.0-alpha01"
 coreSplashscreen = "1.0.1"
 androidx-lifecycle = "2.9.1"
 androidx-testExt = "1.3.0"
@@ -16,7 +17,7 @@ composeMultiplatform = "1.8.2"
 androidx-navigation = "2.9.0-beta04"
 junit = "4.13.2"
 kcsv = "2.2.0"
-komposetableJvm = "0.0.2"
+komposetableJvm = "0.0.3"
 kotlin = "2.2.0"
 ksp = "2.2.0-2.0.2"
 koin = "4.1.0"
@@ -29,6 +30,7 @@ navigationCompose = "2.9.0-beta04"
 
 [libraries]
 adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
+components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeMultiplatform" }
 kcsv = { module = "net.codinux.csv:kcsv", version.ref = "kcsv" }
 komposetable-jvm = { module = "io.github.stephenwanjala:komposetable-jvm", version.ref = "komposetableJvm" }
 komposetable = { module = "io.github.stephenwanjala:komposetable", version.ref = "komposetableJvm" }

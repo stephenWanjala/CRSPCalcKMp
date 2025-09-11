@@ -71,8 +71,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -80,13 +78,6 @@ import com.github.stephenwanjala.crspcalckmp.domain.models.Vehicle
 import com.github.stephenwanjala.crspcalckmp.formatNumber
 import crspcalckmp.composeapp.generated.resources.Res
 import crspcalckmp.composeapp.generated.resources.logo
-import io.github.stephenwanjala.komposetable.ColumnResizeMode
-import io.github.stephenwanjala.komposetable.KomposeTable
-import io.github.stephenwanjala.komposetable.KomposeTableDefaults
-import io.github.stephenwanjala.komposetable.SortState
-import io.github.stephenwanjala.komposetable.TableSelectionModel
-import io.github.stephenwanjala.komposetable.TableSortColumn
-import io.github.stephenwanjala.komposetable.rememberKomposeTableState
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -203,33 +194,24 @@ fun HomeScreen(
                         }
                     }
                 }
-                if (isDesktop) {
-                    // Table layout for desktop
-                    VehicleTable(
-                        vehicles = state.vehicles,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        onVehicleClick = onVehicleClick
-                    )
-                } else {
-                    // List layout for mobile
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
-                            .padding(8.dp),
-                        state = lazyListState
-                    ) {
-                        items(state.vehicles) { vehicle ->
+
+                // List layout for mobile
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .padding(8.dp),
+                    state = lazyListState
+                ) {
+                    items(state.vehicles) { vehicle ->
+                        HorizontalDivider(thickness = .1.dp)
+                        VehicleItem(
+                            vehicle = vehicle,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope, onVehicleClick = onVehicleClick
+                        )
+                        if (vehicle != state.vehicles.last()) {
                             HorizontalDivider(thickness = .1.dp)
-                            VehicleItem(
-                                vehicle = vehicle,
-                                sharedTransitionScope = sharedTransitionScope,
-                                animatedVisibilityScope, onVehicleClick = onVehicleClick
-                            )
-                            if (vehicle != state.vehicles.last()) {
-                                HorizontalDivider(thickness = .1.dp)
-                            }
                         }
                     }
                 }
@@ -322,57 +304,9 @@ fun HomeScreen(
                 )
             }
         }
-
-        // Desktop Filter Dialog (only show on desktop)
-        if (isDesktop) {
-            showFilterDialog?.let { filterOption ->
-                val options = when (filterOption) {
-                    FilterOptions.Make -> state.vehicles.mapNotNull { it.make }.distinct()
-                    FilterOptions.Model -> {
-                        val filteredByMake = state.vehicles.filter {
-                            state.selectedMakeFilter == null || it.make == state.selectedMakeFilter
-                        }
-                        filteredByMake.mapNotNull { it.model }.filter { it.isNotBlank() }.distinct()
-                    }
-
-                    FilterOptions.Fuel -> state.vehicles.mapNotNull { it.fuel }.distinct()
-                    FilterOptions.Type -> state.vehicles.mapNotNull { it.bodyType }.distinct()
-                    FilterOptions.Transmission -> state.vehicles.mapNotNull { it.transmission }
-                        .distinct()
-
-                    FilterOptions.Drive -> state.vehicles.mapNotNull { it.engineCapacity }
-                        .distinct()
-
-                    else -> emptyList()
-                }.sorted()
-
-                val selectedOption = when (filterOption) {
-                    FilterOptions.Make -> state.selectedMakeFilter
-                    FilterOptions.Model -> state.selectedModelFilter
-                    FilterOptions.Fuel -> state.selectedFuelFilter
-                    FilterOptions.Type -> state.selectedTypeFilter
-                    FilterOptions.Transmission -> state.selectedTransmissionFilter
-                    FilterOptions.Drive -> state.selectedDriveFilter
-                    else -> null
-                }
-                SearchableFilterDialog(
-                    options = options,
-                    selectedOption = selectedOption,
-                    onOptionSelected = { value ->
-                        onFilterOptionSelected(filterOption, value)
-                        showFilterDialog = null
-                    },
-                    onDismissRequest = { showFilterDialog = null },
-                    filterOption = filterOption,
-                    onClearFilter = {
-                        onFilterOptionSelected(filterOption, null)
-                        showFilterDialog = null
-                    }
-                )
-            }
-        }
     }
 }
+
 
 @Composable
 fun FilterDropdownChip(
@@ -423,124 +357,6 @@ fun FilterDropdownChip(
                     expanded = false
                 }
             )
-        }
-    }
-}
-
-@Composable
-fun SearchableFilterDialog(
-    options: List<String>,
-    selectedOption: String?,
-    onOptionSelected: (String?) -> Unit,
-    onDismissRequest: () -> Unit,
-    filterOption: FilterOptions,
-    onClearFilter: () -> Unit
-) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    val filteredOptions = remember(options, searchQuery) {
-        if (searchQuery.isBlank()) {
-            options
-        } else {
-            options.filter { it.contains(searchQuery, ignoreCase = true) }
-        }
-    }
-
-    Dialog(onDismissRequest = onDismissRequest) {
-        Card(
-            modifier = Modifier
-                .widthIn(min = 300.dp, max = 500.dp)
-                .height(400.dp),
-            shape = MaterialTheme.shapes.medium,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Select ${filterOption.name}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    IconButton(onClick = onDismissRequest) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search ${filterOption.name}") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
-                            }
-                        }
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (selectedOption != null) {
-                    // Clear filter option
-                    FilterChip(
-                        modifier = Modifier.fillMaxWidth(),
-                        selected = false, // Never selected itself, it's an action
-                        onClick = {
-                            onClearFilter()
-                            searchQuery = ""
-                        },
-                        label = { Text("Clear ${filterOption.name} Filter") },
-                        leadingIcon = {
-                            Icon(Icons.Default.ClearAll, contentDescription = "Clear")
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (filteredOptions.isEmpty() && searchQuery.isNotEmpty()) {
-                        item {
-                            Text(
-                                "No results found for \"$searchQuery\"",
-                                modifier = Modifier.padding(vertical = 16.dp),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    } else {
-                        items(filteredOptions) { option ->
-                            FilterChip(
-                                modifier = Modifier.fillMaxWidth(),
-                                selected = selectedOption == option,
-                                onClick = { onOptionSelected(option) },
-                                label = { Text(option) },
-                                trailingIcon = {
-                                    if (selectedOption == option) {
-                                        Icon(Icons.Default.Check, contentDescription = "Selected")
-                                    }
-                                },
-                                shape = MaterialTheme.shapes.medium
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -1041,7 +857,7 @@ fun VehicleItem(
 }
 
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun VehicleTable(
     vehicles: List<Vehicle>,
@@ -1049,142 +865,12 @@ fun VehicleTable(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onVehicleClick: (Vehicle) -> Unit
 ) {
-    val selectionModel = remember { TableSelectionModel<Vehicle>() }
-    val sortState = remember { mutableStateOf(SortState()) }
-
-    with(sharedTransitionScope) {
-        val columns = listOf(
-            TableSortColumn<Vehicle>(
-                id = "make",
-                title = "Make",
-                width = 150.dp,
-                cellFactory = { vehicle ->
-                    Text(
-                        text = vehicle.make ?: "N/A",
-                        fontWeight = FontWeight.Medium,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        modifier = Modifier.sharedElement(
-                            rememberSharedContentState(key = VehicleSharedElementKey(vehicle)),
-                            animatedVisibilityScope = animatedVisibilityScope
-                        )
-                    )
-                },
-                comparator = compareBy { it.make ?: "" },
-            ),
-            TableSortColumn<Vehicle>(
-                id = "model",
-                title = "Model",
-                width = 250.dp,
-                cellFactory = { vehicle ->
-                    Text(
-                        text = vehicle.model ?: "N/A",
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                },
-                comparator = compareBy { it.model ?: "" },
-            ),
-            TableSortColumn<Vehicle>(
-                id = "price",
-                title = "Price (KES)",
-                width = 120.dp,
-                cellFactory = { vehicle ->
-                    val price = vehicle.crsp?.let {
-                        formatNumber(number = it, decimals = 2)
-                    } ?: "${vehicle.crsp}"
-                    Text(
-                        text = "KES $price",
-                        textAlign = TextAlign.End,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                },
-                comparator = compareBy { it.crsp ?: 0.0 },
-            ),
-            TableSortColumn<Vehicle>(
-                id = "fuel",
-                title = "Fuel",
-                width = 90.dp,
-                cellFactory = { vehicle ->
-                    Text(
-                        text = vehicle.fuel ?: "N/A",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                },
-                comparator = compareBy { it.fuel ?: "" },
-            ),
-            TableSortColumn<Vehicle>(
-                id = "bodyType",
-                title = "Body Type",
-                width = 120.dp,
-                cellFactory = { vehicle ->
-                    Text(
-                        text = vehicle.bodyType ?: "N/A",
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                },
-                comparator = compareBy { it.bodyType ?: "" },
-            ),
-            TableSortColumn<Vehicle>(
-                id = "transmission",
-                title = "Transmission",
-                width = 120.dp,
-                cellFactory = { vehicle ->
-                    Text(
-                        text = vehicle.transmission ?: "N/A",
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        modifier = Modifier.padding(8.dp),
-                    )
-                },
-                comparator = compareBy { it.transmission ?: "" },
-            ),
-            TableSortColumn<Vehicle>(
-                id = "engineCapacity",
-                title = "Engine (CC)",
-                width = 100.dp,
-                cellFactory = { vehicle ->
-                    val engineCapacityFormatted = vehicle.engineCapacity
-                        ?.toDoubleOrNull()
-                        ?.let { "${formatNumber(number = it, decimals = 2)}" }
-                        ?: "N/A"
-                    Text(
-                        text = engineCapacityFormatted,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                },
-                comparator = compareBy { it.engineCapacity?.toDoubleOrNull() ?: 0.0 },
-            ),
-        )
-        val state = rememberKomposeTableState(
-            columnResizeMode = ColumnResizeMode.CONSTRAINED
-        )
-
-        KomposeTable(
-            columns = columns,
-            tableData = vehicles,
-            selectionModel = selectionModel,
-            sortState = sortState,
-            state = state,
-            colors = KomposeTableDefaults.colors.copy(
-                alternatingRowColors = listOf(
-                    MaterialTheme.colorScheme.background.copy(alpha = .5f),
-                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5f)
-                ),
-                headerBackgroundColor = MaterialTheme.colorScheme.background
-            ),
-            onRowClick = { vehicle, _ ->
-                onVehicleClick(vehicle)
-            },
-            onSelectionChange = { selectedVehicles ->
-
-            },
-//            modifier = Modifier.fillMaxSize()
-        )
-    }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    VehicleGrid(
+        vehicles = vehicles,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+        onVehicleClick = onVehicleClick,
+        scrollBehavior = scrollBehavior
+    )
 }

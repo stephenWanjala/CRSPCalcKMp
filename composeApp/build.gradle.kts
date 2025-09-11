@@ -59,17 +59,20 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
             implementation(libs.adaptive)
-            implementation(libs.komposetable)
 
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
+            implementation(compose.desktop.currentOs){
+                exclude(group = "org.jetbrains.compose.material")
+            }
+            // https://mvnrepository.com/artifact/org.jetbrains.compose.components/components-splitpane
+            implementation(libs.components.splitpane)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.material3.desktop)
-//            implementation(libs.komposetable.jvm)
+            implementation(libs.komposetable.jvm)
         }
     }
 }

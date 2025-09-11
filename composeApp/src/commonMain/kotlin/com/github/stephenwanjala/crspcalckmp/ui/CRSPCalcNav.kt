@@ -25,7 +25,7 @@ fun CRSPCalcNav(
         modifier = modifier
     ) {
         composable<Destinations.HomeDestination> {
-            HomeScreen(
+            PlatformHomeScreen(
                 onVehicleClick = { vehicle ->
                     navController.navigate(
                         Destinations.DetailDestination(
@@ -53,11 +53,12 @@ fun CRSPCalcNav(
             val vehicleMake = navBackEntry.toRoute<Destinations.DetailDestination>().make
             val vehicle =
                 state.vehicles.first { it.model == vehicleModel && it.make == vehicleMake }
-            DetailScreen(
+            PlatformDetailsScreen(
                 vehicle = vehicle,
                 animatedVisibilityScope = this,
                 sharedTransitionScope = sharedTransitionScope,
-                onNavigateUp = navController::navigateUp
+                onNavigateUp = navController::navigateUp,
+                viewModel = homeVm,
             )
         }
     }
