@@ -4,13 +4,10 @@
 
 
 ## Screenshots
-### Android
-![Android App Screenshot](docs/android_screenshot1.png)
-![Android App Screenshot](docs/android_screenshot2.png)
-
-### Desktop
-![Desktop App List Screenshot](docs/listDesktop.png)
-![Desktop App DetailScreen Screenshot](docs/detailDesktop.png)
+| Category | Screenshot 1 | Screenshot 2 |
+|---|---|---|
+| **Android** | ![Android App Screenshot](docs/android_screenshot1.png) | ![Android App Screenshot](docs/android_screenshot2.png) |
+| **Desktop** | ![Desktop App List Screenshot](docs/listDesktop.png) | ![Desktop App DetailScreen Screenshot](docs/detailDesktop.png) |
 
 
 
